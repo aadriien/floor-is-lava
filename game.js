@@ -51,6 +51,7 @@ function onResults(results) {
         });
         
         detectJump(results.poseLandmarks);
+        detectArmMovement(results.poseLandmarks);
     }
 }
 
@@ -75,3 +76,49 @@ function detectJump(landmarks) {
         jumpDetected = false;
     }
 }
+
+
+let lastWristY = null;
+let armState = "rest"; // rest → up → down
+
+function detectArmMovement(landmarks) {
+    const leftWrist = landmarks[15];
+    const rightWrist = landmarks[16];
+
+    if (!leftWrist || !rightWrist || leftWrist.visibility < 0.5 || rightWrist.visibility < 0.5) {
+        return;
+    }
+
+    const avgWristY = (leftWrist.y + rightWrist.y) / 2;
+
+    if (lastWristY === null) {
+        lastWristY = avgWristY;
+        return;
+    }
+
+    const deltaY = avgWristY - lastWristY;
+
+    // Tunable thresholds (positive = moving down, negative = moving up)
+    const raiseThreshold = -0.05;
+    const dropThreshold = 0.08;
+
+    switch (armState) {
+        case "rest":
+            if (deltaY < raiseThreshold) {
+                armState = "up";
+            }
+            break;
+        case "up":
+            if (deltaY > dropThreshold) {
+                console.log("ARM FLAP DETECTED!");
+                armState = "rest";
+                score++;
+                scoreElement.textContent = score;
+            }
+            break;
+    }
+
+    lastWristY = avgWristY;
+}
+
+
