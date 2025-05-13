@@ -1,43 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Floor is Lava Game</title>
-    
-    <!-- Tailwind CSS via CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    
-    <!-- TensorFlow + Pose Detection -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-    
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-    </style>
-</head>
-<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
-    
-    <!-- Video feed -->
-    <video id="webcam" autoplay playsinline class="absolute w-full h-full object-cover z-0"></video>
-    
-    <!-- Canvas for pose overlay -->
-    <canvas id="canvas" class="absolute w-full h-full z-10"></canvas>
-    
-    <!-- Game UI -->
-    <div class="absolute top-4 left-4 z-20 text-lg bg-black bg-opacity-60 px-4 py-2 rounded">
-        Score: <span id="score">0</span>
-    </div>
-    
-    <!-- Main game logic -->
-    <script src="game.js"></script>
-    
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Floor is Lava Game</title>
+        
+        <!-- Tailwind CSS via CDN -->
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+        
+        <!-- MediaPipe + Pose Detection -->
+        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+        
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+        
+        <!-- Video feed -->
+        <video id="webcam" autoplay playsinline class="absolute w-full h-full object-cover z-0"></video>
+        
+        <!-- Canvas for pose overlay -->
+        <canvas id="canvas" class="absolute w-full h-full z-10"></canvas>
+        
+        <!-- Game UI -->
+        <div class="absolute top-4 left-4 z-20 text-lg bg-black bg-opacity-60 px-4 py-2 rounded">
+            Score: <span id="score">0</span>
+        </div>
+        
+        <!-- Main game logic -->
+        <script src="game.js"></script>
+        
+    </body>
 </html>
+
+
