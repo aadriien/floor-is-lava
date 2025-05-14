@@ -203,7 +203,7 @@ function detectTargetHits(landmarks) {
                 clearTimeout(targetHit._timeout);
                 targetHit._timeout = setTimeout(() => {
                     targetHit.classList.add("hidden");
-                }, 500);
+                }, 1000);
 
                 return false; // remove this target
             }
