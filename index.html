@@ -30,9 +30,11 @@
         <canvas id="canvas" class="absolute w-full h-full z-10"></canvas>
         
         <!-- Game UI -->
-        <div class="absolute top-4 left-4 z-20 text-lg bg-black bg-opacity-60 px-4 py-2 rounded">
-            Score: <span id="score">0</span>
+        <div class="absolute top-4 left-4 z-20 text-lg bg-black bg-opacity-60 px-4 py-2 rounded text-white">
+            Hits: <span id="score">0</span> |
+            Missed: <span id="missed">0</span>
         </div>
+        
 
         <div id="lava-warning" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-red-600 bg-black bg-opacity-75 px-6 py-3 rounded hidden z-30">
             🔥 STEPPED IN LAVA!

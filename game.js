@@ -1,9 +1,18 @@
 const video = document.getElementById("webcam");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const scoreElement = document.getElementById("score");
+const missedElement = document.getElementById("missed");
 
 let score = 0;
+let missed = 0;
+let latestLandmarks = null;
+
+let poseInitialized = false;
+let poseInitializedAt = null;
+
+
 // let jumpDetected = false;
 // const jumpThreshold = 0.4; // Normalized Y (0–1)
 
@@ -43,22 +52,32 @@ function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // drawLavaSpots(); // Draw lava spots before pose overlays
-    drawTargets(); // Draw targets before pose overlays
+    // drawTargets(); // Draw targets before pose overlays
     
     if (results.poseLandmarks) {
+        latestLandmarks = results.poseLandmarks;
+        
+        if (!poseInitialized) {
+            poseInitialized = true;
+            poseInitializedAt = Date.now();
+        }
+        
+        // detectJump(results.poseLandmarks);
+        // detectArmMovement(results.poseLandmarks);
+        // detectLavaStep(results.poseLandmarks);
+
+        detectTargetHits(latestLandmarks);
+
+
         drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, {
             color: '#00FF00', lineWidth: 4
         });
         drawLandmarks(ctx, results.poseLandmarks, {
             color: '#FF0000', lineWidth: 2
         });
-        
-        // detectJump(results.poseLandmarks);
-        // detectArmMovement(results.poseLandmarks);
-        // detectLavaStep(results.poseLandmarks);
-
-        detectTargetHits(results.poseLandmarks);
     }
+
+    drawTargets();
 }
 
 // function detectJump(landmarks) {
@@ -213,49 +232,55 @@ function onResults(results) {
 let targets = [];
 
 
-function spawnTarget() {
-    const now = Date.now();
+function isNearAnyWrist(target) {
+    if (!latestLandmarks) return false; // allow if no data yet
 
-    const target = {
-        x: Math.random(), // normalized
-        y: Math.random(),
-        radius: 30 + Math.random() * 20,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        createdAt: now,
-        ttl: now + 3500, // alive for 3.5s
-    };
-    targets.push(target);
+    const wrists = [latestLandmarks[15], latestLandmarks[16]];
+    const threshold = 80; // pixels
+
+    for (const wrist of wrists) {
+        if (!wrist || wrist.visibility < 0.5) continue;
+
+        const wx = wrist.x * canvas.width;
+        const wy = wrist.y * canvas.height;
+        const tx = target.x * canvas.width;
+        const ty = target.y * canvas.height;
+
+        const dx = wx - tx;
+        const dy = wy - ty;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < threshold + target.radius) {
+            return true; // too close
+        }
+    }
+    return false;
 }
 
 
-function drawTargets() {
-    const now = Date.now();
-    targets = targets.filter(target => now < target.ttl);
 
-    targets.forEach(target => {
-        const cx = target.x * canvas.width;
-        const cy = target.y * canvas.height;
+function spawnTarget() {
+    const maxAttempts = 20;
+    let attempt = 0;
 
-        const timeLeft = (target.ttl - now) / 2000;
-        const pulse = Math.sin(now * 0.01) * 5;
+    while (attempt < maxAttempts) {
+        attempt++;
 
-        ctx.save();
-        ctx.shadowColor = target.color;
-        ctx.shadowBlur = 20;
+        const target = {
+            x: Math.random(),
+            y: Math.random(),
+            radius: 30 + Math.random() * 20,
+            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            createdAt: Date.now(),
+            ttl: Date.now() + 2500,
+        };
 
-        const grad = ctx.createRadialGradient(
-            cx, cy, 5,
-            cx, cy, target.radius
-        );
-        grad.addColorStop(0, target.color);
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(cx, cy, target.radius + pulse, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    });
+        // Check if too close to any wrist
+        if (!isNearAnyWrist(target)) {
+            targets.push(target);
+            break;
+        }
+    }
 }
 
 
@@ -298,21 +323,29 @@ function detectTargetHits(landmarks) {
 
     const now = Date.now();
     const hitRadius = 30;
-    const minAge = 500; // wait 0.5 sec before target "available" to hit
+    const minAge = 500;
 
+    targets = targets.filter(target => {
+        if (now - target.createdAt < minAge) {
+            return true; // too new to hit
+        }
 
-    wrists.forEach(wrist => {
-        const wx = wrist.x * canvas.width;
-        const wy = wrist.y * canvas.height;
+        if (now >= target.ttl) {
+            // Don't count as missed until pose active
+            if (!poseInitialized || now - poseInitializedAt < 2000) return true;
 
-        targets = targets.filter(target => {
-            // Prevent targets from being mistakenly hit right after generation
-            if (now - target.createdAt < minAge) {
-                return true; 
-            }
+            missed++;
+            missedElement.textContent = missed;
+            return false; // expired, remove
+        }
 
-            const tx = target.x * canvas.width;
-            const ty = target.y * canvas.height;
+        const tx = target.x * canvas.width;
+        const ty = target.y * canvas.height;
+
+        for (const wrist of wrists) {
+            const wx = wrist.x * canvas.width;
+            const wy = wrist.y * canvas.height;
+
             const dx = wx - tx;
             const dy = wy - ty;
             const distance = Math.sqrt(dx * dx + dy * dy);
@@ -323,8 +356,6 @@ function detectTargetHits(landmarks) {
                 scoreElement.textContent = score;
 
                 targetHit.classList.remove("hidden");
-
-                // Hide again after 0.5 seconds
                 clearTimeout(targetHit._timeout);
                 targetHit._timeout = setTimeout(() => {
                     targetHit.classList.add("hidden");
@@ -332,8 +363,9 @@ function detectTargetHits(landmarks) {
 
                 return false; // remove this target
             }
-            return true;
-        });
+        }
+
+        return true; // keep target
     });
 }
 
