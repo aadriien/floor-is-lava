@@ -41,6 +41,8 @@ camera.start();
 
 function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawLavaSpots(); // Draw lava spots before pose overlays
     
     if (results.poseLandmarks) {
         drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, {
@@ -52,6 +54,7 @@ function onResults(results) {
         
         detectJump(results.poseLandmarks);
         detectArmMovement(results.poseLandmarks);
+        detectLavaStep(results.poseLandmarks);
     }
 }
 
@@ -120,5 +123,89 @@ function detectArmMovement(landmarks) {
 
     lastWristY = avgWristY;
 }
+
+
+
+// Use normalized (0–1) coordinates
+const lavaSpots = [
+    { x: 0.2, y: 0.85, radius: 30 },
+    { x: 0.5, y: 0.9, radius: 20 },
+    { x: 0.75, y: 0.88, radius: 40 },
+];
+
+
+function drawLavaSpots() {
+    const time = Date.now() * 0.005;
+
+    lavaSpots.forEach(spot => {
+        const cx = spot.x * canvas.width;
+        const cy = spot.y * canvas.height;
+
+        const pulse = Math.sin(time + cx * 0.01) * 10;
+
+        ctx.save();
+        ctx.shadowColor = "red";
+        ctx.shadowBlur = 20 + pulse;
+
+        const grad = ctx.createRadialGradient(
+            cx, cy, 10,
+            cx, cy, spot.radius
+        );
+        grad.addColorStop(0, "#ff6600");
+        grad.addColorStop(0.5, "#cc0000");
+        grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, spot.radius + pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+}
+
+
+
+function isInLava(x, y) {
+    return lavaSpots.some(spot => {
+        const cx = spot.x * canvas.width;
+        const cy = spot.y * canvas.height;
+        const dx = x - cx;
+        const dy = y - cy;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < spot.radius;
+    });
+}
+
+
+
+const lavaWarning = document.getElementById("lava-warning");
+
+function detectLavaStep(landmarks) {
+    const leftWrist = landmarks[15];
+    const rightWrist = landmarks[16];
+
+    if (!leftWrist || !rightWrist) return;
+
+    // Convert normalized coordinates to canvas space
+    const lx = leftWrist.x * canvas.width;
+    const ly = leftWrist.y * canvas.height;
+    const rx = rightWrist.x * canvas.width;
+    const ry = rightWrist.y * canvas.height;
+
+    if (isInLava(lx, ly) || isInLava(rx, ry)) {
+        console.log("STEPPED IN LAVA!");
+
+        lavaWarning.classList.remove("hidden");
+
+        // Hide again after 1 second
+        clearTimeout(lavaWarning._timeout);
+        lavaWarning._timeout = setTimeout(() => {
+            lavaWarning.classList.add("hidden");
+        }, 1000);
+    }
+}
+
+
+
 
 
