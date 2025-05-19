@@ -1,4 +1,4 @@
-# 🕺 💃 Pose Pulse
+# 🕺💃 Pose Pulse
 
 ## Description
 
@@ -28,7 +28,7 @@ This game can be as simple or as complex as you make it. Whether sitting down or
 
 ## Video Demos
 
-In the works!
+![Video demo of Pose Pulse played on segway](./example-media/pose-pulse-segway-demo.gif)
 
 
 ## Example Images
