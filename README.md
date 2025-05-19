@@ -33,7 +33,9 @@ This game can be as simple or as complex as you make it. Whether sitting down or
 
 ## Example Images
 
-In the works!
+🎯 Target Hit   |   🙆‍♂️ Pose Detection   |   🟣 Target Generation
+:-------------------------:|:-------------------------:|:-------------------------:
+![Example image of target hit](./example-media/pose-pulse-target-hit.png)  |  ![Example image of pose detection](./example-media/pose-pulse-hands.png)  |  ![Example image of target generation](./example-media/pose-pulse-reaching.png)
 
 
 ## Acknowledgements
