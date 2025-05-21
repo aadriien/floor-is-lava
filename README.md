@@ -44,7 +44,7 @@ This game can be as simple or as complex as you make it. Whether sitting down or
 
 A massive thank you to the wonderful community of builders, creators, and programmers at [the Recurse Center](https://www.recurse.com)! 
 
-I built this game in between events at RC's Never Graduate Week (May 2025), and it was a real joy to see so many folks try it out.. segway and all!
+I built this game in between events at RC's Never Graduate Week (May 2025), and it was a real joy to see so many people try it out.. segway and all!
 
 
 
